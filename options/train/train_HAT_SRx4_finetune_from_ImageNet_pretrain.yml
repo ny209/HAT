@@ -1,63 +1,49 @@
 # general settings
-name: train_HAT_SRx4_finetune_from_ImageNet_pretrain
+name: train_HAT_SRx4_finetune_from_ImageNet_pretrain_WV3_rgb_0910
 model_type: HATModel
 scale: 4
 num_gpu: auto
 manual_seed: 0
 
+#=======================nayeon WV3=======================
+#=======================3band(RGB), uint16===============
 # dataset and data loader settings
 datasets:
   train:
-    name: DF2K
+    name: WV3
     type: PairedImageDataset
-    dataroot_gt: datasets/DF2K/DF2K_HR_sub
-    dataroot_lq: datasets/DF2K/DF2K_bicx4_sub
-    meta_info_file: hat/data/meta_info/meta_info_DF2Ksub_GT.txt
+    dataroot_gt: datasets/WV3/rgb/HR/train
+    dataroot_lq: datasets/WV3/rgb/LR/train
+    filename_tmpl: '{}_x4'   # ← 이 줄 추가 (LR 파일명이 0828x4.png 형식일 때)
+    meta_info_file: hat/data/meta_info/meta_info_WV3_GT_rgb.txt
     io_backend:
       type: disk
 
-    gt_size: 256
+    gt_size: 512
     use_hflip: true
     use_rot: true
 
     # data loader
     use_shuffle: true
-    num_worker_per_gpu: 6
-    batch_size_per_gpu: 4
+    num_worker_per_gpu: 3 #기존 6에서 3으로 down
+    batch_size_per_gpu: 2 #기존 4에서 2로 down
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
 
   val_1:
-    name: Set5
+    name: Set1
     type: PairedImageDataset
-    dataroot_gt: ./datasets/Set5/GTmod4
-    dataroot_lq: ./datasets/Set5/LRbicx4
+    dataroot_gt: ./datasets/WV3/rgb/HR/valid
+    dataroot_lq: ./datasets/WV3/rgb/LR/valid
+    filename_tmpl: '{}_x4'
     io_backend:
       type: disk
-
-  val_2:
-    name: Set14
-    type: PairedImageDataset
-    dataroot_gt: ./datasets/Set14/GTmod4
-    dataroot_lq: ./datasets/Set14/LRbicx4
-    io_backend:
-      type: disk
-
-  # val_3:
-  #   name: Urban100
-  #   type: PairedImageDataset
-  #   dataroot_gt: ./datasets/urban100/GTmod4
-  #   dataroot_lq: ./datasets/urban100/LRbicx4
-  #   io_backend:
-  #     type: disk
-
-
 # network structures
 network_g:
   type: HAT
   upscale: 4
-  in_chans: 3
-  img_size: 64
+  in_chans: 3 #채널수?
+  img_size: 128
   window_size: 16
   compress_ratio: 3
   squeeze_factor: 30
@@ -72,11 +58,97 @@ network_g:
   resi_connection: '1conv'
 
 # path
+# path
 path:
-  pretrain_network_g: ./experiments/train_HAT_SRx4_ImageNet_from_scratch/models/net_g_latest.pth
-  param_key_g: 'params_ema'
+  pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
+
+
+# path:
+#   pretrain_network_g: ./experiments/pretrained_models/HAT_SRx4.pth
+#   param_key_g: 'params_ema'
+#   strict_load_g: false
+#   resume_state: ~
+
+# path:
+#   pretrain_network_g: ~      # ★ from scratch
+#   strict_load_g: true
+#   resume_state: ~            # 이어서 학습이 아니라 새 시작
+
+
+# # dataset and data loader settings
+# datasets:
+#   train:
+#     name: DF2K
+#     type: PairedImageDataset
+#     dataroot_gt: datasets/DF2K/DF2K_HR_sub
+#     dataroot_lq: datasets/DF2K/DF2K_bicx4_sub
+#     meta_info_file: hat/data/meta_info/meta_info_DF2Ksub_GT.txt
+#     io_backend:
+#       type: disk
+
+#     gt_size: 256
+#     use_hflip: true
+#     use_rot: true
+
+#     # data loader
+#     use_shuffle: true
+#     num_worker_per_gpu: 6
+#     batch_size_per_gpu: 4
+#     dataset_enlarge_ratio: 1
+#     prefetch_mode: ~
+
+#   val_1:
+#     name: Set5
+#     type: PairedImageDataset
+#     dataroot_gt: ./datasets/Set5/GTmod4
+#     dataroot_lq: ./datasets/Set5/LRbicx4
+#     io_backend:
+#       type: disk
+
+  # val_2:
+  #   name: Set14
+  #   type: PairedImageDataset
+  #   dataroot_gt: ./datasets/Set14/GTmod4
+  #   dataroot_lq: ./datasets/Set14/LRbicx4
+  #   io_backend:
+  #     type: disk
+
+  # val_3:
+  #   name: Urban100
+  #   type: PairedImageDataset
+  #   dataroot_gt: ./datasets/urban100/GTmod4
+  #   dataroot_lq: ./datasets/urban100/LRbicx4
+  #   io_backend:
+  #     type: disk
+
+
+# # network structures
+# network_g:
+#   type: HAT
+#   upscale: 4
+#   in_chans: 3
+#   img_size: 64
+#   window_size: 16
+#   compress_ratio: 3
+#   squeeze_factor: 30
+#   conv_scale: 0.01
+#   overlap_ratio: 0.5
+#   img_range: 1.
+#   depths: [6, 6, 6, 6, 6, 6]
+#   embed_dim: 180
+#   num_heads: [6, 6, 6, 6, 6, 6]
+#   mlp_ratio: 2
+#   upsampler: 'pixelshuffle'
+#   resi_connection: '1conv'
+
+# # path
+# path:
+#   pretrain_network_g: ./experiments/train_HAT_SRx4_ImageNet_from_scratch/models/net_g_latest.pth
+#   param_key_g: 'params_ema'
+#   strict_load_g: true
+#   resume_state: ~
 
 # training settings
 train:
@@ -104,7 +176,7 @@ train:
 # validation settings
 val:
   val_freq: !!float 5e3
-  save_img: false
+  save_img: true
   pbar: False
 
   metrics:
